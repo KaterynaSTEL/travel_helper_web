@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Туристичний помічник</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f3ed;
+    --ink: #1c1a16;
+    --card: #fffef9;
+    --accent: #bf4e30;
+    --gold: #c9973a;
+    --teal: #2d8a7b;
+    --muted: #7a6f62;
+    --border: #e0d8cc;
+    --soft: #ede8e0;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+  header {
+    background: var(--ink);
+    padding: 1.1rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    border-bottom: 3px solid var(--accent);
+  }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; color: #f7f3ed; letter-spacing: 0.02em; }
+  .logo em { color: var(--gold); font-style: normal; }
+  .nav-tabs { display: flex; gap: 0.2rem; }
+  .nav-btn {
+    background: none; border: none; color: #9e9484;
+    font-family: 'Outfit', sans-serif; font-size: 0.88rem; font-weight: 500;
+    padding: 0.5rem 1.1rem; cursor: pointer; border-radius: 4px;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-btn:hover { color: #f7f3ed; background: rgba(255,255,255,0.07); }
+  .nav-btn.active { color: var(--gold); background: rgba(201,151,58,0.12); }
+
+  main { max-width: 860px; margin: 2.5rem auto; padding: 0 1.5rem; }
+  .panel { display: none; animation: fadeUp 0.28s ease both; }
+  .panel.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 700; margin-bottom: 1.4rem; }
+  .section-title small { display: block; font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 400; color: var(--muted); margin-top: 0.2rem; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1.6rem; margin-bottom: 1.4rem; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+
+  .field-label { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: block; margin-bottom: 0.45rem; }
+  select {
+    width: 100%; padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border); border-radius: 5px;
+    font-family: 'Outfit', sans-serif; font-size: 0.95rem;
+    background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a6f62' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 0.9rem center;
+    color: var(--ink); appearance: none; cursor: pointer; transition: border-color 0.2s;
+  }
+  select:focus { outline: none; border-color: var(--teal); }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.1rem; }
+  @media (max-width: 560px) { .field-row { grid-template-columns: 1fr; } }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    padding: 0.65rem 1.5rem; border: none; border-radius: 5px;
+    font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #a8432a; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(191,78,48,0.3); }
+  .btn-secondary { background: var(--soft); color: var(--ink); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-danger { background: transparent; color: #b03020; border: 1.5px solid #d0705a; }
+  .btn-danger:hover { background: #fff0ed; }
+  .btn-row { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+  .trans-result { display: none; background: var(--ink); color: #f7f3ed; border-radius: 6px; padding: 1.5rem 1.8rem; margin-top: 1.2rem; }
+  .trans-result.show { display: block; animation: fadeUp 0.25s ease; }
+  .trans-original { font-size: 0.8rem; color: #8a8070; margin-bottom: 0.3rem; }
+  .trans-text { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1.2; }
+  .trans-meta { font-size: 0.8rem; color: #7a7060; margin-top: 0.5rem; }
+
+  .all-langs { display: none; margin-top: 1.2rem; }
+  .all-langs.show { display: block; animation: fadeUp 0.25s ease; }
+  .langs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; margin-top: 0.8rem; }
+  .lang-chip { background: var(--soft); border: 1px solid var(--border); border-radius: 5px; padding: 0.6rem 0.8rem; }
+  .lang-chip .lc-name { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .lang-chip .lc-text { font-size: 0.9rem; font-weight: 500; color: var(--ink); margin-top: 2px; }
+
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .progress-pct { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 700; color: var(--teal); }
+  .progress-sub { font-size: 0.82rem; color: var(--muted); }
+  .progress-track { background: var(--soft); border-radius: 20px; height: 8px; overflow: hidden; margin-bottom: 1.5rem; }
+  .progress-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--teal), var(--gold)); transition: width 0.5s ease; width: 0%; }
+
+  .checklist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.4rem; }
+  .cl-category { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.1rem; }
+  .cl-cat-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding-bottom: 0.6rem; margin-bottom: 0.5rem; border-bottom: 1.5px solid var(--soft); }
+  .cl-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.38rem 0; cursor: pointer; border-radius: 4px; transition: all 0.1s; user-select: none; }
+  .cl-item:hover { background: var(--bg); padding-left: 4px; }
+  .cl-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--teal); cursor: pointer; flex-shrink: 0; }
+  .cl-item span { font-size: 0.88rem; transition: all 0.2s; }
+  .cl-item.done span { color: var(--muted); text-decoration: line-through; }
+
+  .country-select-wrap { max-width: 300px; margin-bottom: 1.6rem; }
+  .country-hero { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 1.4rem; padding-bottom: 1.2rem; border-bottom: 2px solid var(--soft); flex-wrap: wrap; }
+  .country-flag { font-size: 2.8rem; line-height: 1; }
+  .country-big-name { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 700; }
+  .emergency-badge { margin-left: auto; background: var(--accent); color: white; font-size: 0.82rem; font-weight: 700; padding: 0.35rem 0.9rem; border-radius: 20px; }
+
+  .info-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 580px) { .info-2col { grid-template-columns: 1fr; } }
+  .info-block { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.2rem; }
+  .ib-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); margin-bottom: 0.8rem; }
+  .ib-row { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 0.32rem 0; border-bottom: 1px solid var(--soft); }
+  .ib-row:last-child { border-bottom: none; }
+  .ib-row .k { color: var(--muted); }
+  .ib-row .v { font-weight: 600; }
+  .ib-list { list-style: none; }
+  .ib-list li { font-size: 0.88rem; padding: 0.3rem 0; border-bottom: 1px solid var(--soft); }
+  .ib-list li:last-child { border-bottom: none; }
+  .food-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.4rem; }
+  .food-pill { background: var(--ink); color: var(--bg); font-size: 0.8rem; font-weight: 500; padding: 0.28rem 0.85rem; border-radius: 20px; }
+
+  footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌍 Туристичний <em>помічник</em></div>
+  <nav class="nav-tabs">
+    <button class="nav-btn active" onclick="switchTab('translator',this)">🗣️ Перекладач</button>
+    <button class="nav-btn" onclick="switchTab('checklist',this)">✅ Чек-лист</button>
+    <button class="nav-btn" onclick="switchTab('guide',this)">🗺️ Путівник</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- TRANSLATOR -->
+  <div class="panel active" id="panel-translator">
+    <div class="section-title">Перекладач фраз<small>Оберіть фразу та мову — отримайте переклад миттєво</small></div>
+    <div class="card">
+      <div class="field-row">
+        <div>
+          <label class="field-label" for="phrase-sel">Фраза</label>
+          <select id="phrase-sel"></select>
+        </div>
+        <div>
+          <label class="field-label" for="lang-sel">Мова перекладу</label>
+          <select id="lang-sel"></select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="doTranslate()">🔄 Перекласти</button>
+        <button class="btn btn-secondary" onclick="toggleAllLangs()">🌐 Всі мови</button>
+      </div>
+      <div class="trans-result" id="trans-result">
+        <div class="trans-original" id="tr-original"></div>
+        <div class="trans-text" id="tr-text"></div>
+        <div class="trans-meta" id="tr-meta"></div>
+      </div>
+      <div class="all-langs" id="all-langs">
+        <label class="field-label" style="margin-top:1rem;">Переклади на всі мови</label>
+        <div class="langs-grid" id="langs-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="panel" id="panel-checklist">
+    <div class="section-title">Чек-лист подорожі<small>Позначте все, що вже зібрали</small></div>
+    <div class="card">
+      <div class="progress-header">
+        <div>
+          <div class="progress-pct" id="prog-pct">0%</div>
+          <div class="progress-sub" id="prog-sub">Готовність до подорожі</div>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+      <div class="checklist-grid" id="checklist-grid"></div>
+      <div class="btn-row">
+        <button class="btn btn-danger" onclick="resetChecklist()">🔄 Скинути все</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUIDE -->
+  <div class="panel" id="panel-guide">
+    <div class="section-title">Путівник по країнах<small>Корисна інформація для мандрівника</small></div>
+    <div class="country-select-wrap">
+      <label class="field-label" for="country-sel">Країна</label>
+      <select id="country-sel" onchange="renderCountry()"></select>
+    </div>
+    <div id="country-info"></div>
+  </div>
+
+</main>
+
+<footer>© 2025 Туристичний помічник &nbsp;·&nbsp; Гарної подорожі! ✈️</footer>
+
+<script>
+const LANGUAGES = {
+  'Англійська':'en','Французька':'fr','Німецька':'de','Іспанська':'es','Італійська':'it',
+  'Польська':'pl','Чеська':'cs','Турецька':'tr','Японська':'ja','Китайська':'zh'
+};
+const PHRASES = {
+  'Привіт':                      {en:'Hello',fr:'Bonjour',de:'Hallo',es:'Hola',it:'Ciao',pl:'Cześć',cs:'Ahoj',tr:'Merhaba',ja:'こんにちは',zh:'你好'},
+  'Дякую':                       {en:'Thank you',fr:'Merci',de:'Danke',es:'Gracias',it:'Grazie',pl:'Dziękuję',cs:'Děkuji',tr:'Teşekkürler',ja:'ありがとう',zh:'谢谢'},
+  'Скільки це коштує?':          {en:'How much does it cost?',fr:'Combien ça coûte?',de:'Wie viel kostet das?',es:'¿Cuánto cuesta?',it:'Quanto costa?',pl:'Ile to kosztuje?',cs:'Kolik to stojí?',tr:'Bu ne kadar?',ja:'いくらですか？',zh:'这个多少钱？'},
+  'Де знаходиться туалет?':      {en:'Where is the bathroom?',fr:'Où sont les toilettes?',de:'Wo ist die Toilette?',es:'¿Dónde está el baño?',it:'Dove si trova il bagno?',pl:'Gdzie jest toaleta?',cs:'Kde je toaleta?',tr:'Tuvalet nerede?',ja:'トイレはどこですか？',zh:'厕所在哪里？'},
+  'Я не розумію':                {en:"I don't understand",fr:'Je ne comprends pas',de:'Ich verstehe nicht',es:'No entiendo',it:'Non capisco',pl:'Nie rozumiem',cs:'Nerozumím',tr:'Anlamıyorum',ja:'わかりません',zh:'我不明白'},
+  'Допоможіть мені, будь ласка': {en:'Please help me',fr:"Aidez-moi s'il vous plaît",de:'Bitte helfen Sie mir',es:'Ayúdeme por favor',it:'Aiutami per favore',pl:'Proszę mi pomóc',cs:'Pomožte mi prosím',tr:'Lütfen bana yardım edin',ja:'助けてください',zh:'请帮助我'},
+  'Де готель?':                  {en:'Where is the hotel?',fr:"Où est l'hôtel?",de:'Wo ist das Hotel?',es:'¿Dónde está el hotel?',it:"Dove si trova l'hotel?",pl:'Gdzie jest hotel?',cs:'Kde je hotel?',tr:'Otel nerede?',ja:'ホテルはどこですか？',zh:'酒店在哪里？'},
+  'Рахунок, будь ласка':         {en:'Check, please',fr:"L'addition s'il vous plaît",de:'Die Rechnung bitte',es:'La cuenta por favor',it:'Il conto per favore',pl:'Rachunek proszę',cs:'Účet prosím',tr:'Hesap lütfen',ja:'お会計をお願いします',zh:'请结账'},
+  'Вибачте':                     {en:'Excuse me',fr:'Excusez-moi',de:'Entschuldigung',es:'Disculpe',it:'Scusi',pl:'Przepraszam',cs:'Promiňte',tr:'Affedersiniz',ja:'すみません',zh:'对不起'},
+  'До побачення':                {en:'Goodbye',fr:'Au revoir',de:'Auf Wiedersehen',es:'Adiós',it:'Arrivederci',pl:'Do widzenia',cs:'Na shledanou',tr:'Güle güle',ja:'さようなら',zh:'再见'}
+};
+const CHECKLIST = {
+  '📄 Документи':  ['Паспорт','Віза','Страховка','Квитки','Бронь готелю'],
+  '👕 Одяг':       ['Нижня білизна','Сорочки/футболки','Штани/спідниці','Куртка','Взуття'],
+  '🪥 Гігієна':    ['Зубна щітка','Зубна паста','Шампунь','Мило','Дезодорант'],
+  '💻 Техніка':    ['Телефон','Зарядка','Камера','Навушники','Перехідник'],
+  '💊 Медицина':   ['Ліки особисті','Пластир','Знеболююче','Від алергії','Термометр'],
+  '💼 Інше':       ['Гроші','Кредитні карти','Сонцезахисний крем','Окуляри','Рюкзак']
+};
+const COUNTRIES = {
+  'Туреччина': {flag:'🇹🇷',capital:'Анкара',currency:'Турецька ліра (TRY)',language:'Турецька',emergency:'112',voltage:'230V',timezone:'UTC+3',
+    culture:['🕌 Поважайте релігійні традиції','👕 Скромний одяг у мечетях','🤝 Рукостискання — звичайне привітання','🍽️ Чайні традиції дуже важливі','💰 Торгуйтеся на базарах'],
+    attractions:['🏛️ Собор Святої Софії (Стамбул)','🌊 Памуккале','🏰 Каппадокія','🏖️ Анталія','🏺 Ефес'],food:['Кебаб','Долма','Баклава','Турецька кава','Лукум']},
+  'Польща': {flag:'🇵🇱',capital:'Варшава',currency:'Злотий (PLN)',language:'Польська',emergency:'112',voltage:'230V',timezone:'UTC+1',
+    culture:['🎭 Багата історична спадщина','🍺 Культура пива та горілки','🤝 Формальне спілкування до знайомства','🌹 Дарування квітів жінкам','⛪ Католицизм грає важливу роль'],
+    attractions:['🏰 Вавельський замок (Краків)','🏛️ Старе місто Варшави','⛪ Вроцлавські гноми','🏔️ Закопане та Татри','🧂 Соляні копальні Величка'],food:["П'єроги",'Бігос','Котлет шабовий','Журек','Мазурек']},
+  'Німеччина': {flag:'🇩🇪',capital:'Берлін',currency:'Євро (EUR)',language:'Німецька',emergency:'112',voltage:'230V',timezone:'UTC+1',
+    culture:['⏰ Пунктуальність дуже важлива','🤝 Міцне рукостискання при знайомстві','🍺 Культура пивних садів','♻️ Сортування сміття обов\'язкове','🚫 Тиша у недільні дні'],
+    attractions:['🏰 Замок Нойшванштайн','🚪 Бранденбурзькі ворота','🍺 Октоберфест (Мюнхен)','🏛️ Кельнський собор','🌉 Гейдельберг'],food:['Шніцель','Братвурст','Квашена капуста','Претцель','Штрудель']},
+  'Італія': {flag:'🇮🇹',capital:'Рим',currency:'Євро (EUR)',language:'Італійська',emergency:'112',voltage:'230V',timezone:'UTC+1',
+    culture:['🍝 Їжа — це мистецтво','👨‍👩‍👧‍👦 Сім\'я дуже важлива','🤌 Активна жестикуляція','☕ Еспресо п\'ють стоячи','💒 Скромний одяг у церквах'],
+    attractions:['🏛️ Колізей (Рим)','🎭 Венеція та гондоли','🌋 Везувій та Помпеї','🎨 Флоренція — колиска Ренесансу','🏖️ Амальфітанське узбережжя'],food:['Піца','Паста','Ризотто','Джелато','Тірамісу']},
+  'Франція': {flag:'🇫🇷',capital:'Париж',currency:'Євро (EUR)',language:'Французька',emergency:'112',voltage:'230V',timezone:'UTC+1',
+    culture:['🥖 Культура хліба та випічки','🍷 Винні традиції','🤝 «Bonjour» обов\'язкове при вході','👗 Елегантність у одязі цінується','🚭 Куріння обмежене'],
+    attractions:['🗼 Ейфелева вежа','🖼️ Лувр','⛪ Собор Паризької Богоматері','🏰 Версаль','🍷 Долина Луари'],food:['Круасан','Фуа-гра','Еклер','Коq-о-вен','Рататуй']},
+  'Іспанія': {flag:'🇪🇸',capital:'Мадрид',currency:'Євро (EUR)',language:'Іспанська',emergency:'112',voltage:'230V',timezone:'UTC+1',
+    culture:['🌙 Сієста — денний відпочинок','🕘 Пізні вечері (після 21:00)','💃 Фламенко — частина культури','🏃 Спокійний темп життя','👨‍👩‍👧‍👦 Сімейні цінності важливі'],
+    attractions:['🏛️ Саграда Фамілія (Барселона)','🏰 Альгамбра (Гранада)','🖼️ Прадо (Мадрид)','🏖️ Ібіца та Майорка','🚶 Каміно де Сантьяго'],food:['Паелья','Тапас','Хамон','Гаспачо','Чуррос']},
+  'Греція': {flag:'🇬🇷',capital:'Афіни',currency:'Євро (EUR)',language:'Грецька',emergency:'112',voltage:'230V',timezone:'UTC+2',
+    culture:['🏛️ Повага до античної історії','☕ Кава та філософські бесіди','🧿 Талісман від «поганого ока»','🎉 Великі сімейні свята','⛪ Православна традиція'],
+    attractions:['🏛️ Акрополь (Афіни)','🏝️ Санторіні','⛰️ Метеори','🏖️ Міконос','🏺 Дельфи'],food:['Мусака','Сувлакі','Фета','Цацікі','Баклава']},
+  'Чехія': {flag:'🇨🇿',capital:'Прага',currency:'Чеська крона (CZK)',language:'Чеська',emergency:'112',voltage:'230V',timezone:'UTC+1',
+    culture:['🍺 Найбільше споживання пива на душу','🏰 Збереження архітектури','🤝 Стриманість у спілкуванні','🎼 Багата музична традиція','👞 Зняття взуття вдома'],
+    attractions:['🏰 Празький град','🌉 Карлів міст','⏰ Астрономічний годинник','🏘️ Чеський Крумлов','🍺 Пльзень — батьківщина пільзнера'],food:['Гуляш','Кнедлі','Шніцель','Трдло','Пиво Пільзнер']}
+};
+
+// ── state ──
+let checkedItems = new Set();
+
+// ── init ──
+(function init() {
+  const pSel = document.getElementById('phrase-sel');
+  Object.keys(PHRASES).forEach(p => { const o = document.createElement('option'); o.value = o.textContent = p; pSel.appendChild(o); });
+
+  const lSel = document.getElementById('lang-sel');
+  Object.keys(LANGUAGES).forEach(l => { const o = document.createElement('option'); o.value = o.textContent = l; lSel.appendChild(o); });
+
+  const cSel = document.getElementById('country-sel');
+  Object.keys(COUNTRIES).forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = COUNTRIES[c].flag + ' ' + c; cSel.appendChild(o); });
+
+  buildChecklist();
+  renderCountry();
+})();
+
+// ── tabs ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── translator ──
+function doTranslate() {
+  const phrase = document.getElementById('phrase-sel').value;
+  const lang   = document.getElementById('lang-sel').value;
+  const trans  = PHRASES[phrase][LANGUAGES[lang]];
+  document.getElementById('tr-original').textContent = '🇺🇦 Українською: ' + phrase;
+  document.getElementById('tr-text').textContent = trans;
+  document.getElementById('tr-meta').textContent = '→ ' + lang;
+  document.getElementById('trans-result').classList.add('show');
+  document.getElementById('all-langs').classList.remove('show');
+}
+
+function toggleAllLangs() {
+  const phrase = document.getElementById('phrase-sel').value;
+  const box = document.getElementById('all-langs');
+  if (box.classList.contains('show')) { box.classList.remove('show'); return; }
+  const grid = document.getElementById('langs-grid');
+  grid.innerHTML = '';
+  Object.entries(LANGUAGES).forEach(([name, code]) => {
+    const chip = document.createElement('div');
+    chip.className = 'lang-chip';
+    chip.innerHTML = `<div class="lc-name">${name}</div><div class="lc-text">${PHRASES[phrase][code]}</div>`;
+    grid.appendChild(chip);
+  });
+  document.getElementById('trans-result').classList.remove('show');
+  box.classList.add('show');
+}
+
+// ── checklist ──
+function buildChecklist() {
+  const grid = document.getElementById('checklist-grid');
+  grid.innerHTML = '';
+  Object.entries(CHECKLIST).forEach(([cat, items]) => {
+    const col = document.createElement('div');
+    col.className = 'cl-category';
+    col.innerHTML = `<div class="cl-cat-title">${cat}</div>`;
+    items.forEach(item => {
+      const key = cat + ':' + item;
+      const div = document.createElement('div');
+      div.className = 'cl-item' + (checkedItems.has(key) ? ' done' : '');
+      div.innerHTML = `<input type="checkbox" ${checkedItems.has(key) ? 'checked' : ''}><span>${item}</span>`;
+      div.addEventListener('click', e => {
+        e.preventDefault();
+        if (checkedItems.has(key)) { checkedItems.delete(key); div.classList.remove('done'); div.querySelector('input').checked = false; }
+        else { checkedItems.add(key); div.classList.add('done'); div.querySelector('input').checked = true; }
+        updateProgress();
+      });
+      col.appendChild(div);
+    });
+    grid.appendChild(col);
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = Object.values(CHECKLIST).reduce((s, a) => s + a.length, 0);
+  const pct = Math.round((checkedItems.size / total) * 100);
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-sub').textContent = pct === 100
+    ? '🎉 Все зібрано! Гарної подорожі!'
+    : checkedItems.size + ' з ' + total + ' пунктів зібрано';
+}
+
+function resetChecklist() {
+  if (!confirm('Скинути всі відмітки?')) return;
+  checkedItems.clear();
+  buildChecklist();
+}
+
+// ── country guide ──
+function renderCountry() {
+  const name = document.getElementById('country-sel').value;
+  const c = COUNTRIES[name];
+  document.getElementById('country-info').innerHTML = `
+    <div class="card">
+      <div class="country-hero">
+        <div class="country-flag">${c.flag}</div>
+        <div class="country-big-name">${name}</div>
+        <div class="emergency-badge">🚨 ${c.emergency}</div>
+      </div>
+      <div class="info-2col">
+        <div class="info-block">
+          <div class="ib-title">📋 Основна інформація</div>
+          <div class="ib-row"><span class="k">🏛️ Столиця</span><span class="v">${c.capital}</span></div>
+          <div class="ib-row"><span class="k">💰 Валюта</span><span class="v">${c.currency}</span></div>
+          <div class="ib-row"><span class="k">🗣️ Мова</span><span class="v">${c.language}</span></div>
+          <div class="ib-row"><span class="k">⚡ Напруга</span><span class="v">${c.voltage}</span></div>
+          <div class="ib-row"><span class="k">🕐 Часовий пояс</span><span class="v">${c.timezone}</span></div>
+        </div>
+        <div class="info-block">
+          <div class="ib-title">🏛️ Головні пам'ятки</div>
+          <ul class="ib-list">${c.attractions.map(a=>`<li>${a}</li>`).join('')}</ul>
+        </div>
+        <div class="info-block">
+          <div class="ib-title">🎭 Культурні особливості</div>
+          <ul class="ib-list">${c.culture.map(t=>`<li>${t}</li>`).join('')}</ul>
+        </div>
+        <div class="info-block">
+          <div class="ib-title">🍽️ Традиційна кухня</div>
+          <div class="food-pills">${c.food.map(f=>`<span class="food-pill">${f}</span>`).join('')}</div>
+        </div>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
